@@ -1425,6 +1425,8 @@
       color: #D9776B;
       margin-top: 6px;
       display: none;
+      align-items: center;
+      gap: 6px;
     }
 
     .field.invalid input,
@@ -1434,7 +1436,7 @@
     }
 
     .field.invalid .field-error {
-      display: block;
+      display: flex;
     }
 
     .hp-field {
@@ -1700,11 +1702,7 @@
       border-color: #D9776B;
     }
 
-    .field-error {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    /* (regla .field-error consolidada arriba junto con display:none / display:flex en estado inválido) */
 
     /* ============ WHATSAPP FLOTANTE ============ */
     .whatsapp-float {
@@ -3284,13 +3282,68 @@
       /* ---------------- VIDEO DE PRESENTACIÓN (lite-embed: carga diferida hasta interacción) ---------------- */
       const videoFrame = document.getElementById('videoFrame');
       if (videoFrame) {
+
+        // Fallback visual si la miniatura (poster) no carga por bloqueo de red/CSP/hotlink.
+        const posterImg = videoFrame.querySelector('.video-poster');
+        if (posterImg) {
+          posterImg.addEventListener('error', () => {
+            videoFrame.style.background = 'linear-gradient(135deg, var(--surface-2), var(--bg-alt))';
+            posterImg.style.display = 'none';
+          });
+        }
+
+        // Acepta tanto el ID puro como una URL completa pegada por error
+        // (youtu.be/ID, watch?v=ID, embed/ID, shorts/ID, vimeo.com/ID).
+        function extractYouTubeId(raw) {
+          if (!raw) return '';
+          if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+          const patterns = [
+            /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+            /[?&]v=([a-zA-Z0-9_-]{11})/,
+            /embed\/([a-zA-Z0-9_-]{11})/,
+            /shorts\/([a-zA-Z0-9_-]{11})/
+          ];
+          for (const p of patterns) { const m = raw.match(p); if (m) return m[1]; }
+          return '';
+        }
+        function extractVimeoId(raw) {
+          if (!raw) return '';
+          if (/^\d+$/.test(raw)) return raw;
+          const m = raw.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+          return m ? m[1] : '';
+        }
+
+        // Valores de configuración claramente sin reemplazar: se avisa en vez de intentar
+        // reproducir un video inexistente (que YouTube/Vimeo mostrarían como "video no
+        // disponible", dando la falsa impresión de que el reproductor está roto).
+        const PLACEHOLDER_VALUES = ['reemplazar_con_id_de_youtube', 'id_del_video', ''];
+
+        function showConfigNotice(message) {
+          videoFrame.innerHTML =
+            '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;' +
+            'justify-content:center;gap:10px;padding:24px;text-align:center;color:var(--text-muted);' +
+            'background:var(--surface-2);">' +
+            '<strong style="color:var(--text);font-family:var(--font-display);font-size:1.05rem;">Video pendiente de configurar</strong>' +
+            '<span style="font-size:0.85rem;max-width:420px;">' + message + '</span></div>';
+          videoFrame.classList.add('loaded');
+          videoFrame.removeAttribute('role');
+          videoFrame.removeAttribute('tabindex');
+          videoFrame.style.cursor = 'default';
+        }
+
         function loadVideoEmbed() {
           if (videoFrame.classList.contains('loaded')) return;
           const provider = videoFrame.dataset.provider;
-          const videoId = videoFrame.dataset.videoId;
+          const rawId = (videoFrame.dataset.videoId || '').trim();
           let embedEl;
 
-          if (provider === 'youtube' && videoId) {
+          if (provider === 'youtube') {
+            const videoId = extractYouTubeId(rawId);
+            if (!videoId || PLACEHOLDER_VALUES.includes(rawId.toLowerCase())) {
+              showConfigNotice('Reemplace data-video-id en #videoFrame con el ID real del video de YouTube (los 11 caracteres después de "v=" o "youtu.be/").');
+              console.warn('Video de presentación: data-video-id de YouTube no es válido o no fue reemplazado ("' + rawId + '").');
+              return;
+            }
             embedEl = document.createElement('iframe');
             embedEl.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) + '?autoplay=1&rel=0';
             embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
@@ -3298,7 +3351,13 @@
             embedEl.allowFullscreen = true;
             embedEl.loading = 'lazy';
             embedEl.referrerPolicy = 'strict-origin-when-cross-origin';
-          } else if (provider === 'vimeo' && videoId) {
+          } else if (provider === 'vimeo') {
+            const videoId = extractVimeoId(rawId);
+            if (!videoId || PLACEHOLDER_VALUES.includes(rawId.toLowerCase())) {
+              showConfigNotice('Reemplace data-video-id en #videoFrame con el ID numérico real del video de Vimeo (aparece en la URL: vimeo.com/ID).');
+              console.warn('Video de presentación: data-video-id de Vimeo no es válido o no fue reemplazado ("' + rawId + '").');
+              return;
+            }
             embedEl = document.createElement('iframe');
             embedEl.src = 'https://player.vimeo.com/video/' + encodeURIComponent(videoId) + '?autoplay=1&title=0&byline=0';
             embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
@@ -3322,8 +3381,8 @@
               embedEl.appendChild(track);
             }
           } else {
-            // Sin configuración válida todavía: no se rompe la página, solo se informa en consola.
-            console.warn('Video de presentación: configure data-video-id (YouTube/Vimeo) o data-mp4-src (MP4) en #videoFrame.');
+            showConfigNotice('Configure data-provider ("youtube", "vimeo" o "mp4") y data-video-id / data-mp4-src en #videoFrame.');
+            console.warn('Video de presentación: falta configuración válida en #videoFrame (provider="' + provider + '").');
             return;
           }
 
