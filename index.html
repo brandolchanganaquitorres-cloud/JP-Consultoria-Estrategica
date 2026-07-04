@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Joselyn Peña | Consultoría en Marketing Estratégico e Imagen Corporativa</title>
   <meta name="description"
     content="Joselyn Peña — Consultoría estratégica en marketing, branding e imagen corporativa para empresas y líderes que buscan posicionamiento de autoridad en su industria.">
@@ -136,6 +136,21 @@
       --max-w: 1240px;
       --radius: 2px;
       --transition: 0.35s cubic-bezier(.22, .61, .36, 1);
+
+      /* ---- Safe areas (notch / Dynamic Island / home indicator) ---- */
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-l: env(safe-area-inset-left, 0px);
+      --safe-r: env(safe-area-inset-right, 0px);
+
+      /* ---- Altura de header por breakpoint (usada por JS/CSS para offsets) ---- */
+      --header-h: 84px;
+    }
+
+    @media (max-width:640px) {
+      :root {
+        --header-h: 68px;
+      }
     }
 
     [data-theme="light"] {
@@ -380,6 +395,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
+      padding-top: var(--safe-t);
       background: color-mix(in srgb, var(--bg) 82%, transparent);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -391,19 +407,35 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 84px;
+      height: var(--header-h);
+      gap: 12px;
+      flex-wrap: nowrap;
+      padding-left: max(32px, var(--safe-l));
+      padding-right: max(32px, var(--safe-r));
+    }
+
+    @media (max-width:640px) {
+      .header-inner {
+        padding-left: max(20px, var(--safe-l));
+        padding-right: max(20px, var(--safe-r));
+      }
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      min-width: 0;
+      flex-shrink: 1;
     }
 
     .brand-name {
       font-family: var(--font-display);
       font-size: 1rem;
       line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .brand-name span {
@@ -414,6 +446,14 @@
       color: var(--text-muted);
       text-transform: uppercase;
       margin-top: 2px;
+    }
+
+    @media (max-width:400px) {
+      .brand-name span {
+        display: none;
+      }
+
+      /* evita que el subtítulo fuerce el header a 2 líneas en pantallas muy angostas */
     }
 
     .nav-desktop {
@@ -456,11 +496,20 @@
       display: flex;
       align-items: center;
       gap: 14px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width:600px) {
+      .header-actions {
+        gap: 8px;
+      }
     }
 
     .theme-toggle {
       width: 44px;
       height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       border: 1px solid var(--border-strong);
       background: transparent;
@@ -469,6 +518,8 @@
       justify-content: center;
       color: var(--text);
       transition: all var(--transition);
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
     }
 
     .theme-toggle:hover {
@@ -493,16 +544,33 @@
       display: block;
     }
 
+    /* CTA de texto en el header: se oculta en móvil (<=600px) porque no cabe junto a
+     theme-toggle + hamburguesa sin forzar overflow horizontal. Se compensa con un
+     botón CTA equivalente dentro del menú móvil de pantalla completa. */
+    .header-cta {
+      white-space: nowrap;
+    }
+
+    @media (max-width:600px) {
+      .header-cta {
+        display: none;
+      }
+    }
+
     .nav-toggle {
       display: none;
       width: 44px;
       height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       align-items: center;
       justify-content: center;
       background: none;
       border: 1px solid var(--border-strong);
       border-radius: 50%;
       color: var(--text);
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .nav-toggle svg {
@@ -527,9 +595,11 @@
       background: var(--bg);
       display: flex;
       flex-direction: column;
-      padding: 28px 24px;
+      padding: max(28px, calc(var(--safe-t) + 16px)) max(24px, var(--safe-r)) max(28px, var(--safe-b)) max(24px, var(--safe-l));
       transform: translateX(100%);
       transition: transform var(--transition);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .mobile-nav.open {
@@ -545,6 +615,8 @@
     .mobile-nav-close {
       width: 44px;
       height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       border: 1px solid var(--border-strong);
       background: none;
@@ -552,19 +624,37 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-nav a {
       font-family: var(--font-display);
-      font-size: 1.7rem;
+      font-size: 1.6rem;
       padding: 16px 0;
       border-bottom: 1px solid var(--border);
       color: var(--text);
+      display: block;
+    }
+
+    .mobile-nav-cta {
+      margin-top: 28px;
+    }
+
+    @media (max-height:640px) {
+      .mobile-nav a {
+        font-size: 1.32rem;
+        padding: 12px 0;
+      }
+
+      .mobile-nav-top {
+        margin-bottom: 20px;
+      }
     }
 
     /* ============ HERO ============ */
     .hero {
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       padding-top: 120px;
@@ -1508,8 +1598,8 @@
     /* ============ BACK TO TOP ============ */
     .to-top {
       position: fixed;
-      bottom: 28px;
-      right: 28px;
+      bottom: calc(28px + var(--safe-b));
+      right: calc(28px + var(--safe-r));
       width: 48px;
       height: 48px;
       border-radius: 50%;
@@ -1561,8 +1651,10 @@
     }
 
     .testi-nav-btn {
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       border: 1px solid var(--border-strong);
       background: transparent;
@@ -1571,6 +1663,7 @@
       align-items: center;
       justify-content: center;
       transition: all var(--transition);
+      -webkit-tap-highlight-color: transparent;
     }
 
     .testi-nav-btn:hover {
@@ -1584,8 +1677,8 @@
     }
 
     .testi-play {
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
     }
 
     .testi-play .icon-pause {
@@ -1616,8 +1709,8 @@
     /* ============ WHATSAPP FLOTANTE ============ */
     .whatsapp-float {
       position: fixed;
-      bottom: 28px;
-      left: 28px;
+      bottom: calc(28px + var(--safe-b));
+      left: calc(28px + var(--safe-l));
       width: 56px;
       height: 56px;
       border-radius: 50%;
@@ -1642,15 +1735,15 @@
 
     @media (max-width:640px) {
       .whatsapp-float {
-        left: 16px;
-        bottom: 16px;
+        left: calc(16px + var(--safe-l));
+        bottom: calc(16px + var(--safe-b));
         width: 50px;
         height: 50px;
       }
 
       .to-top {
-        right: 16px;
-        bottom: 16px;
+        right: calc(16px + var(--safe-r));
+        bottom: calc(16px + var(--safe-b));
       }
     }
 
@@ -1695,8 +1788,10 @@
       position: absolute;
       top: 16px;
       right: 16px;
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       border-radius: 50%;
       border: 1px solid var(--border-strong);
       background: transparent;
@@ -1704,6 +1799,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .lead-modal-close svg {
@@ -1768,6 +1864,138 @@
         padding: 24px 0;
       }
     }
+
+    /* ============ VIDEO DE PRESENTACIÓN ============ */
+    .video-frame {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-strong);
+      background: #000;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .video-frame:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .video-poster {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.72;
+      transition: opacity var(--transition);
+    }
+
+    .video-frame:hover .video-poster,
+    .video-frame:focus-visible .video-poster {
+      opacity: 0.55;
+    }
+
+    .video-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.55));
+      pointer-events: none;
+    }
+
+    .video-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 84px;
+      height: 84px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+      transition: transform var(--transition);
+      z-index: 1;
+    }
+
+    .video-frame:hover .video-play-btn,
+    .video-frame:focus-visible .video-play-btn {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    .video-play-btn svg {
+      width: 28px;
+      height: 28px;
+      margin-left: 4px;
+    }
+
+    .video-caption {
+      position: absolute;
+      left: 20px;
+      bottom: 16px;
+      z-index: 1;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.05em;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 7px 14px;
+      border-radius: 2px;
+    }
+
+    .video-frame.loaded::after,
+    .video-frame.loaded .video-poster,
+    .video-frame.loaded .video-play-btn,
+    .video-frame.loaded .video-caption {
+      display: none;
+    }
+
+    .video-frame iframe,
+    .video-frame video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+
+    .video-note {
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 0.8rem;
+      margin-top: 18px;
+    }
+
+    @media (max-width:640px) {
+      .video-play-btn {
+        width: 64px;
+        height: 64px;
+      }
+
+      .video-play-btn svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .video-caption {
+        font-size: 0.68rem;
+        left: 14px;
+        bottom: 12px;
+        padding: 6px 10px;
+      }
+    }
   </style>
 </head>
 
@@ -1786,6 +2014,7 @@
         <a href="#servicios">Servicios</a>
         <a href="#portafolio">Portafolio</a>
         <a href="#casos">Casos de éxito</a>
+        <a href="#video">Video</a>
         <a href="#contacto">Contacto</a>
       </nav>
       <div class="header-actions">
@@ -1799,8 +2028,9 @@
               d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8" />
           </svg>
         </button>
-        <a href="#contacto" class="btn btn-primary" style="padding:12px 24px;">Agendar consultoría</a>
-        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">
+        <a href="#contacto" class="btn btn-primary header-cta" style="padding:12px 24px;">Agendar consultoría</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false"
+          aria-controls="mobileNav">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
@@ -1810,7 +2040,7 @@
   </header>
 
   <!-- ============ MOBILE NAV ============ -->
-  <div class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav" id="mobileNav" role="dialog" aria-modal="true" aria-label="Menú de navegación">
     <div class="mobile-nav-top">
       <button class="mobile-nav-close" id="mobileNavClose" aria-label="Cerrar menú">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -1823,8 +2053,10 @@
       <a href="#servicios">Servicios</a>
       <a href="#portafolio">Portafolio</a>
       <a href="#casos">Casos de éxito</a>
+      <a href="#video">Video</a>
       <a href="#contacto">Contacto</a>
     </nav>
+    <a href="#contacto" class="btn btn-primary btn-block mobile-nav-cta">Agendar consultoría</a>
   </div>
 
   <main id="main">
@@ -2341,6 +2573,44 @@
       </div>
     </section>
 
+    <!-- ============ VIDEO DE PRESENTACIÓN ============ -->
+    <section class="section" id="video" aria-label="Video de presentación">
+      <div class="container">
+        <div class="section-head reveal" style="margin:0 auto 48px; text-align:center;">
+          <span class="eyebrow" style="justify-content:center;">Video de presentación</span>
+          <h2>Conozca la metodología detrás de cada estrategia de marca</h2>
+          <p style="margin:18px auto 0;">Un recorrido breve por la propuesta de valor, el proceso de trabajo, casos de
+            éxito y los diferenciadores de esta consultoría — directo de la fundadora.</p>
+        </div>
+
+        <!--
+        Reproductor tipo "facade" (lite-embed): solo se muestra una miniatura estática
+        y un botón de reproducción. El iframe/video real (pesado en JS y peticiones de
+        red) se inyecta únicamente cuando la persona interactúa, lo que evita penalizar
+        el LCP/Performance de la página con reproductores de YouTube/Vimeo cargados de
+        antemano. Para cambiar de proveedor, edita los atributos data-* de #videoFrame:
+          - YouTube:  data-provider="youtube" data-video-id="ID_DEL_VIDEO"
+          - Vimeo:    data-provider="vimeo"   data-video-id="ID_DEL_VIDEO"
+          - MP4 local: data-provider="mp4"    data-mp4-src="ruta/al/video.mp4" data-captions="ruta/subtitulos.vtt"
+      -->
+        <div class="video-frame reveal" id="videoFrame" data-provider="youtube"
+          data-video-id="REEMPLAZAR_CON_ID_DE_YOUTUBE" data-mp4-src="" data-captions="" role="button" tabindex="0"
+          aria-label="Reproducir video de presentación: metodología y propuesta de valor de Joselyn Peña (4 minutos)">
+          <img class="video-poster"
+            src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&amp;w=1200&amp;auto=format&amp;fit=crop"
+            alt="" loading="lazy" decoding="async">
+          <button class="video-play-btn" type="button" tabindex="-1" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
+          <span class="video-caption">Joselyn Peña — Metodología y casos de éxito · 4 min</span>
+        </div>
+        <p class="video-note">¿Prefiere agendar directamente? <a href="#contacto"
+            style="color:var(--accent); font-weight:600;">Reserve su consultoría exploratoria gratuita</a>.</p>
+      </div>
+    </section>
+
     <!-- ============ CONTACTO ============ -->
     <section class="section" id="contacto">
       <div class="container contact-grid">
@@ -2628,17 +2898,79 @@
       const navToggle = document.getElementById('navToggle');
       const mobileNav = document.getElementById('mobileNav');
       const mobileNavClose = document.getElementById('mobileNavClose');
+      const mainContent = document.getElementById('main');
+      const siteFooter = document.querySelector('.site-footer');
+      let scrollLockY = 0;
 
-      function openNav() { mobileNav.classList.add('open'); navToggle.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; }
-      function closeNav() { mobileNav.classList.remove('open'); navToggle.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+      function getFocusable(container) {
+        return Array.from(container.querySelectorAll('a[href], button:not([disabled])'))
+          .filter(el => el.offsetParent !== null);
+      }
+
+      function lockScroll() {
+        // Bloqueo de scroll robusto para iOS Safari: overflow:hidden en el body NO es
+        // suficiente en iOS (el fondo puede seguir haciendo scroll con el dedo). Se fija
+        // el body en su posición actual con position:fixed y se restaura al cerrar.
+        scrollLockY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = -scrollLockY + 'px';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+      }
+      function unlockScroll() {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        window.scrollTo(0, scrollLockY);
+      }
+
+      function openNav() {
+        mobileNav.classList.add('open');
+        navToggle.setAttribute('aria-expanded', 'true');
+        lockScroll();
+        if (mainContent) mainContent.setAttribute('aria-hidden', 'true');
+        if (siteFooter) siteFooter.setAttribute('aria-hidden', 'true');
+        // Mueve el foco al botón de cierre para lectores de pantalla y navegación por teclado.
+        mobileNavClose.focus();
+      }
+      function closeNav() {
+        mobileNav.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        unlockScroll();
+        if (mainContent) mainContent.removeAttribute('aria-hidden');
+        if (siteFooter) siteFooter.removeAttribute('aria-hidden');
+        navToggle.focus();
+      }
       navToggle.addEventListener('click', openNav);
       mobileNavClose.addEventListener('click', closeNav);
       mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeNav));
 
+      // Cierre con tecla Escape.
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileNav.classList.contains('open')) closeNav();
+      });
+
+      // Trampa de foco: mientras el menú está abierto, Tab/Shift+Tab permanecen dentro de él.
+      mobileNav.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+        const focusable = getFocusable(mobileNav);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      });
+
       /* ---------------- ACTIVE NAV LINK ON SCROLL ---------------- */
       const sections = document.querySelectorAll('main section[id], section[id]');
       const navLinks = document.querySelectorAll('.nav-desktop a');
-      const sectionMap = Array.from(document.querySelectorAll('[id]')).filter(el => ['sobre', 'servicios', 'portafolio', 'casos', 'recursos', 'contacto'].includes(el.id));
+      const sectionMap = Array.from(document.querySelectorAll('[id]')).filter(el => ['sobre', 'servicios', 'portafolio', 'casos', 'video', 'recursos', 'contacto'].includes(el.id));
 
       const navObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -2948,6 +3280,69 @@
           leadSubmitBtn.textContent = 'Enviar checklist gratis';
         }
       });
+
+      /* ---------------- VIDEO DE PRESENTACIÓN (lite-embed: carga diferida hasta interacción) ---------------- */
+      const videoFrame = document.getElementById('videoFrame');
+      if (videoFrame) {
+        function loadVideoEmbed() {
+          if (videoFrame.classList.contains('loaded')) return;
+          const provider = videoFrame.dataset.provider;
+          const videoId = videoFrame.dataset.videoId;
+          let embedEl;
+
+          if (provider === 'youtube' && videoId) {
+            embedEl = document.createElement('iframe');
+            embedEl.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) + '?autoplay=1&rel=0';
+            embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
+            embedEl.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            embedEl.allowFullscreen = true;
+            embedEl.loading = 'lazy';
+            embedEl.referrerPolicy = 'strict-origin-when-cross-origin';
+          } else if (provider === 'vimeo' && videoId) {
+            embedEl = document.createElement('iframe');
+            embedEl.src = 'https://player.vimeo.com/video/' + encodeURIComponent(videoId) + '?autoplay=1&title=0&byline=0';
+            embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
+            embedEl.allow = 'autoplay; fullscreen; picture-in-picture';
+            embedEl.allowFullscreen = true;
+            embedEl.loading = 'lazy';
+          } else if (provider === 'mp4' && videoFrame.dataset.mp4Src) {
+            embedEl = document.createElement('video');
+            embedEl.src = videoFrame.dataset.mp4Src;
+            embedEl.controls = true;
+            embedEl.autoplay = true;
+            embedEl.playsInline = true;
+            embedEl.setAttribute('webkit-playsinline', ''); // compatibilidad iOS Safari antiguo
+            if (videoFrame.dataset.captions) {
+              const track = document.createElement('track');
+              track.kind = 'captions';
+              track.srclang = 'es';
+              track.label = 'Español';
+              track.src = videoFrame.dataset.captions;
+              track.default = true;
+              embedEl.appendChild(track);
+            }
+          } else {
+            // Sin configuración válida todavía: no se rompe la página, solo se informa en consola.
+            console.warn('Video de presentación: configure data-video-id (YouTube/Vimeo) o data-mp4-src (MP4) en #videoFrame.');
+            return;
+          }
+
+          videoFrame.innerHTML = '';
+          videoFrame.appendChild(embedEl);
+          videoFrame.classList.add('loaded');
+          videoFrame.removeAttribute('role');
+          videoFrame.removeAttribute('tabindex');
+          videoFrame.removeAttribute('aria-label');
+        }
+
+        videoFrame.addEventListener('click', loadVideoEmbed);
+        videoFrame.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            loadVideoEmbed();
+          }
+        });
+      }
 
     })();
   </script>
