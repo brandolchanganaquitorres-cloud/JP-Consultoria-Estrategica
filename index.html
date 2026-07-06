@@ -3366,19 +3366,18 @@
             embedEl.allowFullscreen = true;
             embedEl.loading = 'lazy';
           } else if (provider === 'heygen') {
+            // El enlace de HeyGen es la vista interna del video dentro de su plataforma
+            // (no un iframe de "embed" público), por lo que HeyGen y la Content-Security-Policy
+            // del propio sitio bloquean su incrustación. Se abre en una pestaña nueva para que
+            // la persona pueda verlo sin restricciones de framing.
             const videoUrl = (videoFrame.dataset.videoUrl || '').trim();
             if (!videoUrl) {
               showConfigNotice('Configure data-video-url en #videoFrame con el enlace público del video de HeyGen.');
               console.warn('Video de presentación: falta data-video-url para el proveedor "heygen".');
               return;
             }
-            embedEl = document.createElement('iframe');
-            embedEl.src = videoUrl;
-            embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
-            embedEl.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-            embedEl.allowFullscreen = true;
-            embedEl.loading = 'lazy';
-            embedEl.referrerPolicy = 'strict-origin-when-cross-origin';
+            window.open(videoUrl, '_blank', 'noopener,noreferrer');
+            return;
           } else if (provider === 'mp4' && videoFrame.dataset.mp4Src) {
             embedEl = document.createElement('video');
             embedEl.src = videoFrame.dataset.mp4Src;
