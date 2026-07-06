@@ -2547,8 +2547,8 @@
       <div class="container">
         <div class="about-grid">
           <div class="about-img reveal">
-            <img src="images/FotoJP.jpeg"
-              alt="Joselyn Peña en una sesión de consultoría" loading="lazy" decoding="async">
+            <img src="images/FotoJP.jpeg" alt="Joselyn Peña en una sesión de consultoría" loading="lazy"
+              decoding="async">
           </div>
           <div class="about-copy reveal">
             <span class="eyebrow">Sobre la consultora</span>
@@ -2591,8 +2591,9 @@
           - Vimeo:    data-provider="vimeo"   data-video-id="ID_DEL_VIDEO"
           - MP4 local: data-provider="mp4"    data-mp4-src="ruta/al/video.mp4" data-captions="ruta/subtitulos.vtt"
       -->
-        <div class="video-frame reveal" id="videoFrame" data-provider="HeyGen"
-          data-video-id="https://app.heygen.com/videos/v-deo-de-avatar-3c05a438d56f4aaa89e983f46f86d1df" data-mp4-src="" data-captions="" role="button" tabindex="0"
+        <div class="video-frame reveal" id="videoFrame" data-provider="heygen"
+          data-video-url="https://app.heygen.com/videos/v-deo-de-avatar-3c05a438d56f4aaa89e983f46f86d1df"
+          data-video-id="" data-mp4-src="" data-captions="" role="button" tabindex="0"
           aria-label="Reproducir video de presentación: metodología y propuesta de valor de Joselyn Peña (4 minutos)">
           <img class="video-poster"
             src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&amp;w=1200&amp;auto=format&amp;fit=crop"
@@ -3364,6 +3365,20 @@
             embedEl.allow = 'autoplay; fullscreen; picture-in-picture';
             embedEl.allowFullscreen = true;
             embedEl.loading = 'lazy';
+          } else if (provider === 'heygen') {
+            const videoUrl = (videoFrame.dataset.videoUrl || '').trim();
+            if (!videoUrl) {
+              showConfigNotice('Configure data-video-url en #videoFrame con el enlace público del video de HeyGen.');
+              console.warn('Video de presentación: falta data-video-url para el proveedor "heygen".');
+              return;
+            }
+            embedEl = document.createElement('iframe');
+            embedEl.src = videoUrl;
+            embedEl.title = 'Video de presentación — Joselyn Peña Consultoría';
+            embedEl.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            embedEl.allowFullscreen = true;
+            embedEl.loading = 'lazy';
+            embedEl.referrerPolicy = 'strict-origin-when-cross-origin';
           } else if (provider === 'mp4' && videoFrame.dataset.mp4Src) {
             embedEl = document.createElement('video');
             embedEl.src = videoFrame.dataset.mp4Src;
@@ -3381,7 +3396,7 @@
               embedEl.appendChild(track);
             }
           } else {
-            showConfigNotice('Configure data-provider ("youtube", "vimeo" o "mp4") y data-video-id / data-mp4-src en #videoFrame.');
+            showConfigNotice('Configure data-provider ("youtube", "vimeo", "heygen" o "mp4") y data-video-id / data-video-url / data-mp4-src en #videoFrame.');
             console.warn('Video de presentación: falta configuración válida en #videoFrame (provider="' + provider + '").');
             return;
           }
